@@ -1,0 +1,236 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Document</title>
+	<style>
+		#container {
+			display: flex;
+			flex-flow: column;
+			align-items: center;
+			margin-top: 40px;
+		}
+
+		li {
+			margin: 10px;
+			padding: 10px;
+			border: 1px solid white;
+			border-radius: 10px;
+		}
+
+		.active {
+			background: #fff !important;
+			border-color: #409eff !important;
+			color: #409eff !important;
+		}
+
+		#messagebox {
+			height: 100px;
+			text-align: center;
+			margin-top: 100px;
+			margin: 0 auto;
+		}
+
+		#title {
+			font-size: 30px;
+			color: #e6a23c;
+			padding: 20px;
+		}
+
+		#result {
+			background-color: #f0f9eb;
+			border-color: #e1f3d8;
+			color: #67c23a;
+			padding: 20px;
+			border-radius: 10px;
+		}
+
+		.btn {
+			display: inline-block;
+			line-height: 1;
+			white-space: nowrap;
+			cursor: pointer;
+			background: #fff;
+			border: 1px solid #dcdfe6;
+			-webkit-appearance: none;
+			text-align: center;
+			box-sizing: border-box;
+			outline: none;
+			margin: 0;
+			transition: .1s;
+			font-weight: 500;
+			-moz-user-select: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+			padding: 12px 20px;
+			font-size: 14px;
+			border-radius: 4px;
+			margin-top: 10px;
+			margin-bottom: 10px;
+			color: #fff;
+			background-color: #409eff;
+			border-color: #409eff;
+		}
+
+		.valueItem {
+			display: inline-block;
+			line-height: 1;
+			white-space: nowrap;
+			cursor: pointer;
+			background: #fff;
+			border: 1px solid #dcdfe6;
+			color: #606266;
+			-webkit-appearance: none;
+			text-align: center;
+			box-sizing: border-box;
+			outline: none;
+			margin: 10px;
+			transition: .1s;
+			font-weight: 500;
+			-moz-user-select: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+			padding: 12px 20px;
+			font-size: 14px;
+			border-radius: 4px;
+		}
+
+		.input-value {
+			-webkit-appearance: none;
+			background-color: #fff;
+			background-image: none;
+			border-radius: 4px;
+			border: 1px solid #dcdfe6;
+			box-sizing: border-box;
+			color: #606266;
+			display: inline-block;
+			font-size: inherit;
+			height: 40px;
+			line-height: 40px;
+			outline: none;
+			padding: 0 15px;
+			transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+			width: 100%;
+		}
+
+		.box {
+			padding: 40px;
+			box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%);
+			border-radius: 4px;
+			border: 1px solid #ebeef5;
+			background-color: #fff;
+			overflow: hidden;
+			color: #303133;
+			transition: .3s;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="container">
+		<div class="box">
+			<h2>
+				随机点餐
+			</h2>
+			<h4>
+				添加餐馆:
+			</h4> <input type="text" class="input-value" v-model="addValue">
+			<button type="button" class="btn" @click="onBtnAdd()">
+				添加餐馆
+			</button>
+			<button type="button" class="btn" @click="onBtnClick()">
+				{{ btnText }}
+			</button>
+			<div class="box">
+				<ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-flow: row wrap;"
+					v-if="values.length != 0">
+					<li v-for="(v, i) in values" :key="i" :class="{ active: selectedIndexs.includes(i) }"
+						class="valueItem" @click="onBtnRemove(i)">
+						{{ v }}
+					</li>
+				</ul>
+			</div>
+			<div id="messagebox" v-if="showName">
+				<div id="title">好的 今天选择用膳</div>
+				<div id="result">
+					<span v-for="(v,i) in selectedName">{{ v }} &nbsp;&nbsp;</span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+	<script>
+		new Vue({
+			el: '#container',
+			data() {
+				return {
+					values: [],
+					indexs: [],
+					size: 1,
+					selectedIndexs: [],
+					intervalId: null,
+					selectedName: [],
+					showName: false,
+					isDisabled: false,
+					addValue: ""
+				}
+			},
+			computed: {
+				btnText() {
+					return this.intervalId ? '确定选择' : '开始随机'
+				}
+			},
+			methods: {
+				onBtnClick() {
+					this.indexs = this.values.map((v, i) => i)
+					this.values.sort(() => 0.5 - Math.random())
+					clearInterval(this.intervalId)
+					if (this.intervalId) {
+						this.intervalId = null
+						this.isDisabled = false
+						for (let i = 0; i < this.values.length; i++) {
+							for (let j = 0; j < this.selectedIndexs.length; j++) {
+								if (this.selectedIndexs[j] == i) {
+									this.selectedName.push(this.values[i])
+								}
+							}
+						}
+						this.showName = true
+					} else {
+						this.intervalId = setInterval(() => {
+							this.selectedName = []
+							this.selectedIndexs = this.indexs
+								.sort(() => 0.5 - Math.random())
+								.slice(0, this.size)
+						}, 100)
+						this.isDisabled = true
+						this.showName = false
+					}
+				},
+				onBtnAdd() {
+					if (this.addValue != '') {
+						this.values.push(this.addValue)
+						localStorage.setItem("myRestaurant", this.values);
+					}
+				},
+				onBtnRemove(i) {
+					console.log(this.values)
+					this.values.splice(i, 1)
+					localStorage.setItem("myRestaurant", this.values);
+				}
+			},
+			created() {
+				if (localStorage.getItem("myRestaurant") != null) {
+					console.log(localStorage.getItem("myRestaurant"))
+					this.values = localStorage.getItem("myRestaurant").split(",");
+				}
+			},
+		})
+	</script>
+</body>
+
+</html>
